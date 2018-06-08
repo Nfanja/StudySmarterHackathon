@@ -64,3 +64,7 @@ sceneform.asset('sampledata/models/andy.obj',
         'sampledata/models/andy.sfa',
         'src/main/res/raw/andy')
 
+sceneform.asset('sampledata/models/jetengine.obj',
+        'default',
+        'sampledata/models/jetengine.sfa',
+        'src/main/res/raw/jetengine')
