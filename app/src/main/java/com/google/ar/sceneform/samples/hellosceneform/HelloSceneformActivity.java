@@ -85,5 +85,6 @@ public class HelloSceneformActivity extends AppCompatActivity {
           andy.setRenderable(andyRenderable);
           andy.select();
         });
+    
   }
 }
