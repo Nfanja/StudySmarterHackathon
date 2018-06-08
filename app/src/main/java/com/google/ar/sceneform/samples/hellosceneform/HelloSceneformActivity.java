@@ -25,7 +25,13 @@ import com.google.ar.core.HitResult;
 import com.google.ar.core.Plane;
 import com.google.ar.core.Plane.Type;
 import com.google.ar.sceneform.AnchorNode;
+import com.google.ar.sceneform.HitTestResult;
+import com.google.ar.sceneform.math.Vector3;
+import com.google.ar.sceneform.rendering.Color;
+import com.google.ar.sceneform.rendering.Material;
+import com.google.ar.sceneform.rendering.MaterialFactory;
 import com.google.ar.sceneform.rendering.ModelRenderable;
+import com.google.ar.sceneform.samples.hellosceneform.LineDrawing.Line;
 import com.google.ar.sceneform.ux.ArFragment;
 import com.google.ar.sceneform.ux.TransformableNode;
 
@@ -37,7 +43,9 @@ public class HelloSceneformActivity extends AppCompatActivity {
 
   private ArFragment arFragment;
   private ModelRenderable andyRenderable;
+  private TransformableNode andy;
 
+    public static boolean drawing = false;
   @Override
   @SuppressWarnings({"AndroidApiChecker", "FutureReturnValueIgnored"})
   // CompletableFuture requires api level 24
@@ -80,11 +88,35 @@ public class HelloSceneformActivity extends AppCompatActivity {
           anchorNode.setParent(arFragment.getArSceneView().getScene());
 
           // Create the transformable andy and add it to the anchor.
-          TransformableNode andy = new TransformableNode(arFragment.getTransformationSystem());
+          andy = new TransformableNode(arFragment.getTransformationSystem());
           andy.setParent(anchorNode);
           andy.setRenderable(andyRenderable);
           andy.select();
         });
-    
+
+      MaterialFactory.makeOpaqueWithColor(this, new Color(1.0f, 1.0f, 1.0f, 1.0f))
+              .thenAccept( material -> {
+                  Line line = new Line(andy, material);
+                  arFragment.getArSceneView().getScene().setOnTouchListener(
+                          (HitTestResult htr, MotionEvent me) -> {
+                              if (me.getAction() == MotionEvent.ACTION_DOWN) {
+                                  drawing = true;
+//                                  Toast.makeText(this, "Touch " + me.toString(), Toast.LENGTH_LONG).show();
+                              } else if(me.getAction() == MotionEvent.ACTION_UP) {
+                                  drawing = false;
+                              }
+                              return true;
+                          }
+                  );
+                  arFragment.getArSceneView().getScene().setOnUpdateListener(
+                          frameTime -> {
+
+                              if (drawing) {
+                                  Vector3 pos = arFragment.getArSceneView().getScene().getCamera().getWorldPosition();
+                                  line.add(pos, arFragment.getArSceneView().getScene());
+                              }
+                          }
+                  );
+              });
   }
 }
