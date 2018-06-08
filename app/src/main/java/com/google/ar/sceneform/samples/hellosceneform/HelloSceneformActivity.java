@@ -15,7 +15,6 @@
  */
 package com.google.ar.sceneform.samples.hellosceneform;
 
-import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Gravity;
