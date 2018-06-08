@@ -14,7 +14,7 @@ import com.google.ar.sceneform.ux.ArFragment;
 public class MyArFragment extends ArFragment {
     public Anchor anchor;
     public static String TAG = MyArFragment.class.getSimpleName();
-    public boolean hosting = true;
+    public boolean hosting = false;
 
     @Override
     public void onResume() {

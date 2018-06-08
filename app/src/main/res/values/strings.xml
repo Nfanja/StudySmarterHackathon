@@ -14,7 +14,7 @@
    limitations under the License.
 -->
 <resources>
-    <string name="app_name">Hello Sceneform</string>
+    <string name="app_name">CollabAR</string>
     <string name="edit_message">Enter Message</string>
     <string name="save_text">Save</string>
 </resources>

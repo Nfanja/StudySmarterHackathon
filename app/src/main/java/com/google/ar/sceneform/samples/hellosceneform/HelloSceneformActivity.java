@@ -118,11 +118,14 @@ public class HelloSceneformActivity extends AppCompatActivity {
 
                     Session session = arFragment.getArSceneView().getSession();
                     arFragment.anchor = session.hostCloudAnchor(arFragment.anchor);
+                    arFragment.hosting = true;
 
                     // Create the transformable andy and add it to the anchor.
                     andy = new TransformableNode(arFragment.getTransformationSystem());
                     andy.setParent(anchorNode);
                     andy.setRenderable(andyRenderable);
+                    andy.getScaleController().setMinScale(0.49f);
+                    andy.getScaleController().setMaxScale(0.5f);
                     andy.select();
                     andy.setOnTapListener(
                             (HitTestResult hr, MotionEvent me) -> {
@@ -139,6 +142,9 @@ public class HelloSceneformActivity extends AppCompatActivity {
 
     public void sendMessage(View view) {
         EditText editText = findViewById(R.id.editText2);
+        editText.setVisibility(View.INVISIBLE);
+        Button button = findViewById(R.id.button);
+        button.setVisibility(View.INVISIBLE);
         String message = editText.getText().toString();
         TextView textView = noteRenderable.getView().findViewById(R.id.noteText);
         textView.setText(message);
