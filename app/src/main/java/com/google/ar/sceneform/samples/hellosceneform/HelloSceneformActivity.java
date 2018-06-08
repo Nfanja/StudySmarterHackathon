@@ -15,10 +15,15 @@
  */
 package com.google.ar.sceneform.samples.hellosceneform;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Gravity;
 import android.view.MotionEvent;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 import com.google.ar.core.Anchor;
 import com.google.ar.core.HitResult;
@@ -37,6 +42,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import static android.os.Build.VERSION_CODES.N;
+import static android.provider.AlarmClock.EXTRA_MESSAGE;
 
 /**
  * This is an example activity that uses the Sceneform UX package to make common AR tasks easier.
@@ -60,6 +66,12 @@ public class HelloSceneformActivity extends AppCompatActivity {
     setContentView(R.layout.activity_ux);
 
     arFragment = (ArFragment) getSupportFragmentManager().findFragmentById(R.id.ux_fragment);
+
+    Button button = (Button) findViewById(R.id.button);
+    button.setVisibility(View.GONE);
+
+    EditText editText = (EditText) findViewById(R.id.editText2);
+    editText.setVisibility(View.GONE);
 
     CompletableFuture<ViewRenderable> noteStage = ViewRenderable.builder().
             setView(this, R.layout.note_view).build();
@@ -118,6 +130,8 @@ public class HelloSceneformActivity extends AppCompatActivity {
               andy.select();
               andy.setOnTapListener(
                       (HitTestResult hr, MotionEvent me) -> {
+                          button.setVisibility(View.VISIBLE);
+                          editText.setVisibility(View.VISIBLE);
                           andy.addChild(addNote());
                       }
               );
@@ -126,6 +140,19 @@ public class HelloSceneformActivity extends AppCompatActivity {
 //              andy.addChild(addNote());
 //          }
         });
+  }
+  public static final String EXTRA_MESSAGE = "com.google.ar.MESSAGE";
+  public void sendMessage(View view) {
+//    Intent intent = new Intent(this);
+    EditText editText = (EditText) findViewById(R.id.editText2);
+    String message = editText.getText().toString();
+//    TextView textView = findViewById(R.id.noteText);
+//    textView.setText(message);
+    TextView textView = noteRenderable.getView().findViewById(R.id.noteText);
+    textView.setText(message);
+//    intent.putExtra(EXTRA_MESSAGE, message);
+//    startActivity(intent);
+
   }
 
   protected Node addNote() {
