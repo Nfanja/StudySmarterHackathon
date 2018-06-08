@@ -18,134 +18,87 @@ package com.google.ar.sceneform.samples.hellosceneform;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.ArraySet;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.widget.Toast;
-import com.google.ar.core.Anchor;
-import com.google.ar.core.Camera;
+
 import com.google.ar.core.Config;
-import com.google.ar.core.Frame;
 import com.google.ar.core.HitResult;
 import com.google.ar.core.Plane;
 import com.google.ar.core.Plane.Type;
 import com.google.ar.core.Session;
-import com.google.ar.core.TrackingState;
-import com.google.ar.core.exceptions.CameraNotAvailableException;
 import com.google.ar.sceneform.AnchorNode;
-import com.google.ar.sceneform.FrameTime;
-import com.google.ar.sceneform.Scene;
 import com.google.ar.sceneform.rendering.ModelRenderable;
-import com.google.ar.sceneform.ux.ArFragment;
 import com.google.ar.sceneform.ux.TransformableNode;
-
-import java.util.ArrayList;
-import java.util.Collection;
 
 /**
  * This is an example activity that uses the Sceneform UX package to make common AR tasks easier.
  */
 public class HelloSceneformActivity extends AppCompatActivity {
-  private static final String TAG = HelloSceneformActivity.class.getSimpleName();
+    private static final String TAG = HelloSceneformActivity.class.getSimpleName();
 
-  private ArFragment arFragment;
-  private ModelRenderable andyRenderable;
-  private CloudAnchorManager cloudAnchorManager;
-  public static Context ctx;
-  private Session session;
-  private Anchor myAnchor;
+    private MyArFragment arFragment;
+    private ModelRenderable andyRenderable;
+    public static Context ctx;
 
-  @Override
-  @SuppressWarnings({"AndroidApiChecker", "FutureReturnValueIgnored"})
-  // CompletableFuture requires api level 24
-  // FutureReturnValueIgnored is not valid
-  protected void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
+    @Override
+    @SuppressWarnings({"AndroidApiChecker", "FutureReturnValueIgnored"})
+    // CompletableFuture requires api level 24
+    // FutureReturnValueIgnored is not valid
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
 
-    setContentView(R.layout.activity_ux);
-    ctx = this.getApplicationContext();
-    arFragment = (ArFragment) getSupportFragmentManager().findFragmentById(R.id.ux_fragment);
+        setContentView(R.layout.activity_ux);
+        ctx = this.getApplicationContext();
+        arFragment = (MyArFragment) getSupportFragmentManager().findFragmentById(R.id.ux_fragment);
 
-    // When you build a Renderable, Sceneform loads its resources in the background while returning
-    // a CompletableFuture. Call thenAccept(), handle(), or check isDone() before calling get().
-    ModelRenderable.builder()
-        .setSource(this, R.raw.andy)
-        .build()
-        .thenAccept(renderable -> andyRenderable = renderable)
-        .exceptionally(
-            throwable -> {
-              Toast toast =
-                  Toast.makeText(this, "Unable to load andy renderable", Toast.LENGTH_LONG);
-              toast.setGravity(Gravity.CENTER, 0, 0);
-              toast.show();
-              return null;
-            });
+        // When you build a Renderable, Sceneform loads its resources in the background while returning
+        // a CompletableFuture. Call thenAccept(), handle(), or check isDone() before calling get().
+        ModelRenderable.builder()
+                .setSource(this, R.raw.andy)
+                .build()
+                .thenAccept(renderable -> andyRenderable = renderable)
+                .exceptionally(
+                        throwable -> {
+                            Toast toast =
+                                    Toast.makeText(this, "Unable to load andy renderable", Toast.LENGTH_LONG);
+                            toast.setGravity(Gravity.CENTER, 0, 0);
+                            toast.show();
+                            return null;
+                        });
 
+        arFragment.setOnTapArPlaneListener(
+                (HitResult hitResult, Plane plane, MotionEvent motionEvent) -> {
+                    if (andyRenderable == null) {
+                        return;
+                    }
 
-    arFragment.setOnTapArPlaneListener(
-        (HitResult hitResult, Plane plane, MotionEvent motionEvent) -> {
-          if (andyRenderable == null) {
-            return;
-          }
+                    if (plane.getType() != Type.HORIZONTAL_UPWARD_FACING) {
+                        return;
+                    }
 
-          if (plane.getType() != Type.HORIZONTAL_UPWARD_FACING) {
-            return;
-          }
+                    // Create the Anchor
+                    arFragment.anchor = hitResult.createAnchor();
+                    Log.e(TAG, "" + arFragment.anchor.getPose().getTranslation());
+                    AnchorNode anchorNode = new AnchorNode(arFragment.anchor);
+                    anchorNode.setParent(arFragment.getArSceneView().getScene());
 
-          // Create the Anchor.
-          Anchor anchor = hitResult.createAnchor();
-          AnchorNode anchorNode = new AnchorNode(anchor);
-          anchorNode.setParent(arFragment.getArSceneView().getScene());
+                    Session session = arFragment.getArSceneView().getSession();
+                    arFragment.anchor = session.hostCloudAnchor(arFragment.anchor);
 
-          session = arFragment.getArSceneView().getSession();
-          cloudAnchorManager = new CloudAnchorManager();
-          cloudAnchorManager.setSession(session);
-          Config config = new Config(session);
-          config.setCloudAnchorMode(Config.CloudAnchorMode.ENABLED);
-          session.configure(config);
-          cloudAnchorManager.hostCloudAnchor(anchor, new CloudAnchorManager.CloudAnchorListener() {
-              @Override
-              public void onCloudTaskComplete(Anchor anchor) {
-                  Toast.makeText(HelloSceneformActivity.ctx, "Hosted with id" + anchor.getCloudAnchorId(), Toast.LENGTH_LONG).show();
-              }
-          });
-            myAnchor=anchor;
-          // Create the transformable andy and add it to the anchor.
-          TransformableNode andy = new TransformableNode(arFragment.getTransformationSystem());
-          andy.setParent(anchorNode);
-          andy.setRenderable(andyRenderable);
-          andy.select();
-
-        });
-    arFragment.getArSceneView().getScene().setOnUpdateListener(new Scene.OnUpdateListener() {
-        @Override
-        public void onUpdate(FrameTime frameTime) {
-            if(session!=null){
-                try {
-                    Frame frame = session.update();
-                    TrackingState trackingState = frame.getCamera().getTrackingState();
-                } catch (CameraNotAvailableException e) {
-                    e.printStackTrace();
+                    // Create the transformable andy and add it to the anchor.
+                    TransformableNode andy = new TransformableNode(arFragment.getTransformationSystem());
+                    andy.setParent(anchorNode);
+                    andy.setRenderable(andyRenderable);
+                    andy.select();
                 }
-                Log.e(TAG, "STATE: " + myAnchor.getCloudAnchorState().toString());
-                Log.e(TAG, "ID: " + myAnchor.getCloudAnchorId());
-            }else {
-                Log.e(TAG, "session == null");
-            }
-
-        }
-    });
-  }
+        );
+    }
 
     @Override
     protected void onResume() {
         super.onResume();
-
-        Session session = arFragment.getArSceneView().getSession();
-        if (session != null) {
-            Log.e(TAG, "Got a session!");
-        }
     }
 
 }
