@@ -25,6 +25,7 @@ import com.google.ar.core.HitResult;
 import com.google.ar.core.Plane;
 import com.google.ar.core.Plane.Type;
 import com.google.ar.sceneform.AnchorNode;
+import com.google.ar.sceneform.HitTestResult;
 import com.google.ar.sceneform.Node;
 import com.google.ar.sceneform.math.Vector3;
 import com.google.ar.sceneform.rendering.ModelRenderable;
@@ -35,6 +36,8 @@ import com.google.ar.sceneform.ux.TransformableNode;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
+import static android.os.Build.VERSION_CODES.N;
+
 /**
  * This is an example activity that uses the Sceneform UX package to make common AR tasks easier.
  */
@@ -44,6 +47,8 @@ public class HelloSceneformActivity extends AppCompatActivity {
   private ArFragment arFragment;
   private ModelRenderable andyRenderable;
   private ViewRenderable noteRenderable;
+//  public int count = 0;
+  public TransformableNode andy;
 
   @Override
   @SuppressWarnings({"AndroidApiChecker", "FutureReturnValueIgnored"})
@@ -92,25 +97,34 @@ public class HelloSceneformActivity extends AppCompatActivity {
 
     arFragment.setOnTapArPlaneListener(
         (HitResult hitResult, Plane plane, MotionEvent motionEvent) -> {
-          if (andyRenderable == null) {
-            return;
-          }
+//          if (count == 0) {
+              if (andyRenderable == null) {
+                  return;
+              }
 
-          if (plane.getType() != Type.HORIZONTAL_UPWARD_FACING) {
-            return;
-          }
+              if (plane.getType() != Type.HORIZONTAL_UPWARD_FACING) {
+                  return;
+              }
 
-          // Create the Anchor.
-          Anchor anchor = hitResult.createAnchor();
-          AnchorNode anchorNode = new AnchorNode(anchor);
-          anchorNode.setParent(arFragment.getArSceneView().getScene());
+              // Create the Anchor.
+              Anchor anchor = hitResult.createAnchor();
+              AnchorNode anchorNode = new AnchorNode(anchor);
+              anchorNode.setParent(arFragment.getArSceneView().getScene());
 
-          // Create the transformable andy and add it to the anchor.
-          TransformableNode andy = new TransformableNode(arFragment.getTransformationSystem());
-          andy.setParent(anchorNode);
-          andy.setRenderable(andyRenderable);
-          andy.select();
-          andy.addChild(addNote());
+              // Create the transformable andy and add it to the anchor.
+              andy = new TransformableNode(arFragment.getTransformationSystem());
+              andy.setParent(anchorNode);
+              andy.setRenderable(andyRenderable);
+              andy.select();
+              andy.setOnTapListener(
+                      (HitTestResult hr, MotionEvent me) -> {
+                          andy.addChild(addNote());
+                      }
+              );
+//              count++;
+//          } else {
+//              andy.addChild(addNote());
+//          }
         });
   }
 
