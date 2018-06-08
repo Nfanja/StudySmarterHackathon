@@ -56,13 +56,13 @@ dependencies {
     implementation "com.google.ar.sceneform.ux:sceneform-ux:1.0.0"
     implementation "com.android.support:appcompat-v7:27.1.1"
     implementation "com.android.support:design:27.1.1"
+    implementation 'com.android.support.constraint:constraint-layout:1.1.1'
 }
 
 apply plugin: 'com.google.ar.sceneform.plugin'
 apply plugin: 'com.google.gms.google-services'
 
-sceneform.asset('sampledata/models/andy.obj',
+sceneform.asset('sampledata/models/jetengine.obj',
         'default',
-        'sampledata/models/andy.sfa',
-        'src/main/res/raw/andy')
-
+        'sampledata/models/jetengine.sfa',
+        'src/main/res/raw/jetengine')
