@@ -15,19 +15,33 @@
  */
 package com.google.ar.sceneform.samples.hellosceneform;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.ArraySet;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.widget.Toast;
 import com.google.ar.core.Anchor;
+import com.google.ar.core.Camera;
+import com.google.ar.core.Config;
+import com.google.ar.core.Frame;
 import com.google.ar.core.HitResult;
 import com.google.ar.core.Plane;
 import com.google.ar.core.Plane.Type;
+import com.google.ar.core.Session;
+import com.google.ar.core.TrackingState;
+import com.google.ar.core.exceptions.CameraNotAvailableException;
 import com.google.ar.sceneform.AnchorNode;
+import com.google.ar.sceneform.FrameTime;
+import com.google.ar.sceneform.Scene;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 import com.google.ar.sceneform.ux.ArFragment;
 import com.google.ar.sceneform.ux.TransformableNode;
+
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * This is an example activity that uses the Sceneform UX package to make common AR tasks easier.
@@ -37,6 +51,10 @@ public class HelloSceneformActivity extends AppCompatActivity {
 
   private ArFragment arFragment;
   private ModelRenderable andyRenderable;
+  private CloudAnchorManager cloudAnchorManager;
+  public static Context ctx;
+  private Session session;
+  private Anchor myAnchor;
 
   @Override
   @SuppressWarnings({"AndroidApiChecker", "FutureReturnValueIgnored"})
@@ -46,7 +64,7 @@ public class HelloSceneformActivity extends AppCompatActivity {
     super.onCreate(savedInstanceState);
 
     setContentView(R.layout.activity_ux);
-
+    ctx = this.getApplicationContext();
     arFragment = (ArFragment) getSupportFragmentManager().findFragmentById(R.id.ux_fragment);
 
     // When you build a Renderable, Sceneform loads its resources in the background while returning
@@ -64,6 +82,7 @@ public class HelloSceneformActivity extends AppCompatActivity {
               return null;
             });
 
+
     arFragment.setOnTapArPlaneListener(
         (HitResult hitResult, Plane plane, MotionEvent motionEvent) -> {
           if (andyRenderable == null) {
@@ -79,11 +98,54 @@ public class HelloSceneformActivity extends AppCompatActivity {
           AnchorNode anchorNode = new AnchorNode(anchor);
           anchorNode.setParent(arFragment.getArSceneView().getScene());
 
+          session = arFragment.getArSceneView().getSession();
+          cloudAnchorManager = new CloudAnchorManager();
+          cloudAnchorManager.setSession(session);
+          Config config = new Config(session);
+          config.setCloudAnchorMode(Config.CloudAnchorMode.ENABLED);
+          session.configure(config);
+          cloudAnchorManager.hostCloudAnchor(anchor, new CloudAnchorManager.CloudAnchorListener() {
+              @Override
+              public void onCloudTaskComplete(Anchor anchor) {
+                  Toast.makeText(HelloSceneformActivity.ctx, "Hosted with id" + anchor.getCloudAnchorId(), Toast.LENGTH_LONG).show();
+              }
+          });
+            myAnchor=anchor;
           // Create the transformable andy and add it to the anchor.
           TransformableNode andy = new TransformableNode(arFragment.getTransformationSystem());
           andy.setParent(anchorNode);
           andy.setRenderable(andyRenderable);
           andy.select();
+
         });
+    arFragment.getArSceneView().getScene().setOnUpdateListener(new Scene.OnUpdateListener() {
+        @Override
+        public void onUpdate(FrameTime frameTime) {
+            if(session!=null){
+                try {
+                    Frame frame = session.update();
+                    TrackingState trackingState = frame.getCamera().getTrackingState();
+                } catch (CameraNotAvailableException e) {
+                    e.printStackTrace();
+                }
+                Log.e(TAG, "STATE: " + myAnchor.getCloudAnchorState().toString());
+                Log.e(TAG, "ID: " + myAnchor.getCloudAnchorId());
+            }else {
+                Log.e(TAG, "session == null");
+            }
+
+        }
+    });
   }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        Session session = arFragment.getArSceneView().getSession();
+        if (session != null) {
+            Log.e(TAG, "Got a session!");
+        }
+    }
+
 }
