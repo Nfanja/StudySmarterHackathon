@@ -25,9 +25,15 @@ import com.google.ar.core.HitResult;
 import com.google.ar.core.Plane;
 import com.google.ar.core.Plane.Type;
 import com.google.ar.sceneform.AnchorNode;
+import com.google.ar.sceneform.Node;
+import com.google.ar.sceneform.math.Vector3;
 import com.google.ar.sceneform.rendering.ModelRenderable;
+import com.google.ar.sceneform.rendering.ViewRenderable;
 import com.google.ar.sceneform.ux.ArFragment;
 import com.google.ar.sceneform.ux.TransformableNode;
+
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 /**
  * This is an example activity that uses the Sceneform UX package to make common AR tasks easier.
@@ -37,6 +43,7 @@ public class HelloSceneformActivity extends AppCompatActivity {
 
   private ArFragment arFragment;
   private ModelRenderable andyRenderable;
+  private ViewRenderable noteRenderable;
 
   @Override
   @SuppressWarnings({"AndroidApiChecker", "FutureReturnValueIgnored"})
@@ -48,6 +55,24 @@ public class HelloSceneformActivity extends AppCompatActivity {
     setContentView(R.layout.activity_ux);
 
     arFragment = (ArFragment) getSupportFragmentManager().findFragmentById(R.id.ux_fragment);
+
+    CompletableFuture<ViewRenderable> noteStage = ViewRenderable.builder().
+            setView(this, R.layout.note_view).build();
+
+    CompletableFuture.allOf(noteStage).handle(
+            (notUsed, throwable) -> {
+                if(throwable != null) {
+                    DemoUtils.displayError(this, "Unable to load note", throwable);
+                    return null;
+                }
+            try {
+                noteRenderable = noteStage.get();
+            } catch (InterruptedException | ExecutionException ex) {
+                DemoUtils.displayError(this, "Unable to load note", ex);
+            }
+            return null;
+      });
+
 
     // When you build a Renderable, Sceneform loads its resources in the background while returning
     // a CompletableFuture. Call thenAccept(), handle(), or check isDone() before calling get().
@@ -84,6 +109,17 @@ public class HelloSceneformActivity extends AppCompatActivity {
           andy.setParent(anchorNode);
           andy.setRenderable(andyRenderable);
           andy.select();
+          andy.addChild(addNote());
         });
+  }
+
+  protected Node addNote() {
+      Node base = new Node();
+      Node noteToAdd = new Node();
+      noteToAdd.setParent(base);
+      noteToAdd.setLocalPosition(new Vector3(0.0f, 0.25f, 0.0f));
+      noteToAdd.setRenderable(noteRenderable);
+      return base;
+
   }
 }
