@@ -11,11 +11,10 @@ import com.google.ar.core.exceptions.CameraNotAvailableException;
 import com.google.ar.sceneform.FrameTime;
 import com.google.ar.sceneform.ux.ArFragment;
 
-import java.util.Collection;
-
 public class MyArFragment extends ArFragment {
     public Anchor anchor;
-    public static String TAG = "MyArFragment";
+    public static String TAG = MyArFragment.class.getSimpleName();
+    public boolean hosting = true;
 
     @Override
     public void onResume() {
@@ -35,15 +34,21 @@ public class MyArFragment extends ArFragment {
     public void onUpdate(FrameTime frameTime) {
         super.onUpdate(frameTime);
         Session session = getArSceneView().getSession();
-        if (session != null && anchor != null) {
+        if (session != null && anchor != null && hosting) {
             try {
                 Frame frame = session.update();
                 frame.getCamera().getTrackingState();
-                // Collection<Anchor> anchors = frame.getUpdatedAnchors();
-                if(!anchor.getCloudAnchorId().equals("")) {
+                Anchor.CloudAnchorState state = anchor.getCloudAnchorState();
+                if(state.isError()){
+                    Log.e(TAG, "Error: " + state);
+                    Toast.makeText(this.getContext(), "Error", Toast.LENGTH_LONG).show();
+                    hosting = false;
+                }else if(state == Anchor.CloudAnchorState.SUCCESS){
                     Log.e(TAG, "ID: " + anchor.getCloudAnchorId());
                     Toast.makeText(this.getContext(), "Host successfull", Toast.LENGTH_LONG).show();
+                    hosting = false;
                 }
+
             } catch (CameraNotAvailableException e) {
                 e.printStackTrace();
             }
