@@ -14,12 +14,16 @@ import com.google.ar.core.Session;
 import com.google.ar.core.TrackingState;
 import com.google.ar.core.exceptions.CameraNotAvailableException;
 import com.google.ar.sceneform.FrameTime;
+import com.google.ar.sceneform.Node;
 import com.google.ar.sceneform.ux.ArFragment;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 
 public class MyArFragment extends ArFragment {
     public Anchor anchor;
@@ -72,6 +76,7 @@ public class MyArFragment extends ArFragment {
     }
 
     private HashSet<AugmentedImage> trackedAugImgs = new HashSet<>();
+
     @Override
     public void onUpdate(FrameTime frameTime) {
         super.onUpdate(frameTime);
@@ -88,6 +93,19 @@ public class MyArFragment extends ArFragment {
                         node.setImage(img);
                         getArSceneView().getScene().addChild(node);
                         trackedAugImgs.add(img);
+                    }
+                }
+            }
+
+            List<Node> children = getArSceneView().getScene().getChildren();
+            //First two anchors are camera and sun
+            if(children.size()>3) {
+                for(Node node: children) {
+                    for(Node node2: node.getChildren()) {
+                        ArrayList<Node> overlappedNodes = getArSceneView().getScene().overlapTestAll(node2);
+                        if(!overlappedNodes.isEmpty()) {
+                            Toast.makeText(getContext(), "Overlapped", Toast.LENGTH_SHORT).show();
+                        }
                     }
                 }
             }
