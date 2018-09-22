@@ -26,6 +26,7 @@ public class AugmentedImageNode extends AnchorNode {
         if (modelFuture == null) {
             modelFuture = ModelRenderable.builder().setSource(context, resource).build();
         }
+        this.setSmoothed(true);
     }
 
     /**
