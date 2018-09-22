@@ -87,6 +87,7 @@ public class MyArFragment extends ArFragment {
                         AugmentedImageNode node = new AugmentedImageNode(this.getContext(), R.raw.hydrogen);
                         node.setImage(img);
                         getArSceneView().getScene().addChild(node);
+                        trackedAugImgs.add(img)
                     }
                 }
             }
