@@ -27,7 +27,7 @@ public class MyArFragment extends ArFragment {
 
     private Bitmap loadImage(String name) {
         Bitmap bitmap = null;
-        try (InputStream inputStream = this.getContext().getAssets().open("augmented-images-earth.jpg")) {
+        try (InputStream inputStream = this.getContext().getAssets().open(name)) {
             bitmap = BitmapFactory.decodeStream(inputStream);
         } catch (IOException e) {
             Log.e(TAG, "I/O exception loading augmented image bitmap.", e);
@@ -52,7 +52,7 @@ public class MyArFragment extends ArFragment {
         Bitmap hydrogen = loadImage("H.jpg");
         Bitmap oxygen = loadImage("O.jpg");
         Bitmap cl = loadImage("Cl.jpg");
-        Bitmap na = loadImage("na.jpg");
+        Bitmap na = loadImage("Na.jpg");
 
         imageDatabase.addImage("earth", earth);
         imageDatabase.addImage("oxygen", oxygen);
@@ -80,7 +80,9 @@ public class MyArFragment extends ArFragment {
                 Frame frame = getArSceneView().getArFrame();
                 Collection<AugmentedImage> updatedAugmentedImages =
                         frame.getUpdatedTrackables(AugmentedImage.class);
-
+                if(!updatedAugmentedImages.isEmpty()) {
+                    Toast.makeText(getContext(), "Found!", Toast.LENGTH_SHORT).show();
+                }
                 for (AugmentedImage img : updatedAugmentedImages) {
                     // Developers can:
                     // 1. Check tracking state.
