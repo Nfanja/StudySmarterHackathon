@@ -67,7 +67,6 @@ sceneform.asset('sampledata/models/jetengine.obj',
         'sampledata/models/jetengine.sfa',
         'src/main/res/raw/jetengine')
 
-
 sceneform.asset('sampledata/models/oxygen.obj',
         'default',
         'sampledata/models/oxygen.sfa',
@@ -77,3 +76,8 @@ sceneform.asset('sampledata/models/water.obj',
         'default',
         'sampledata/models/water.sfa',
         'src/main/res/raw/water')
+
+sceneform.asset('sampledata/models/hydrogen.obj',
+        'default',
+        'sampledata/models/hydrogen.sfa',
+        'src/main/res/raw/hydrogen')
