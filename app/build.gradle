@@ -66,3 +66,29 @@ sceneform.asset('sampledata/models/jetengine.obj',
         'default',
         'sampledata/models/jetengine.sfa',
         'src/main/res/raw/jetengine')
+
+
+sceneform.asset('sampledata/models/Hydrogen.obj',
+        'default',
+        'sampledata/models/Hydrogen.sfa',
+        'src/main/assets/Hydrogen')
+
+sceneform.asset('sampledata/models/hydrogen.obj',
+        'default',
+        'sampledata/models/hydrogen.sfa',
+        'src/main/assets/hydrogen')
+
+sceneform.asset('sampledata/models/hydrogen.obj',
+        'default',
+        'sampledata/models/hydrogen.sfa',
+        'src/main/res/raw/hydrogen')
+
+sceneform.asset('sampledata/models/oxygen.obj',
+        'default',
+        'sampledata/models/oxygen.sfa',
+        'src/main/res/raw/oxygen')
+
+sceneform.asset('sampledata/models/water.obj',
+        'default',
+        'sampledata/models/water.sfa',
+        'src/main/res/raw/water')
