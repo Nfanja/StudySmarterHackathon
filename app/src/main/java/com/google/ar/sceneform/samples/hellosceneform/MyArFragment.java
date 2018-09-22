@@ -109,6 +109,9 @@ public class MyArFragment extends ArFragment {
                     }
                 }
             }
+
+            Anchor.CloudAnchorState state = anchor.getCloudAnchorState();
+            hosting = !(state.isError() || state == Anchor.CloudAnchorState.SUCCESS);
         }
     }
 
