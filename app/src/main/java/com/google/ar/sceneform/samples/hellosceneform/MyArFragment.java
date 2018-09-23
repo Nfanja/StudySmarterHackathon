@@ -10,11 +10,16 @@ import com.google.ar.core.AugmentedImage;
 import com.google.ar.core.AugmentedImageDatabase;
 import com.google.ar.core.Config;
 import com.google.ar.core.Frame;
+import com.google.ar.core.Pose;
 import com.google.ar.core.Session;
 import com.google.ar.core.TrackingState;
 import com.google.ar.core.exceptions.CameraNotAvailableException;
+import com.google.ar.sceneform.AnchorNode;
 import com.google.ar.sceneform.FrameTime;
 import com.google.ar.sceneform.Node;
+import com.google.ar.sceneform.math.MathHelper;
+import com.google.ar.sceneform.math.Vector3;
+import com.google.ar.sceneform.rendering.ModelRenderable;
 import com.google.ar.sceneform.ux.ArFragment;
 
 import java.io.IOException;
@@ -29,6 +34,7 @@ public class MyArFragment extends ArFragment {
     public Anchor anchor;
     public static String TAG = MyArFragment.class.getSimpleName();
     public boolean hosting = false;
+    public boolean overlapped = false;
 
     private Bitmap loadImage(String name) {
         Bitmap bitmap = null;
@@ -105,22 +111,41 @@ public class MyArFragment extends ArFragment {
                 }
             }
 
-            List<Node> children = getArSceneView().getScene().getChildren();
-            //First two anchors are camera and sun
-            if(children.size()>3) {
-                for(Node node: children) {
-                    for(Node node2: node.getChildren()) {
-                        ArrayList<Node> overlappedNodes = getArSceneView().getScene().overlapTestAll(node2);
-                        if(!overlappedNodes.isEmpty()) {
-                            Toast.makeText(getContext(), "Overlapped", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                }
-            }
-
             if(anchor != null && hosting) {
                 Anchor.CloudAnchorState state = anchor.getCloudAnchorState();
                 hosting = !(state.isError() || state == Anchor.CloudAnchorState.SUCCESS);
+            }
+
+            if(!overlapped) {
+                List<Node> children = getArSceneView().getScene().getChildren();
+                //First two anchors are camera and sun
+                if (children.size() > 3) {
+                    Node node = children.get(2);
+                        for (Node child : node.getChildren()) {
+                            ArrayList<Node> overlappedNodes = getArSceneView().getScene().overlapTestAll(child);
+                            if (!overlappedNodes.isEmpty()) {
+                                node.removeChild(child);
+                                Toast.makeText(getContext(), "Overlapped", Toast.LENGTH_SHORT).show();
+                                Vector3 center = Vector3.add(overlappedNodes.get(0).getWorldPosition(), child.getWorldPosition());
+                                center.set(center.x / 2, center.y / 2, center.z / 2);
+
+                                ModelRenderable.builder().
+                                        setSource(getContext(), R.raw.water).
+                                        build().thenAccept(renderable -> {
+                                    Node newNode = new Node();
+                                    newNode.setParent(node);
+                                    newNode.setLocalPosition(node.worldToLocalDirection(center));
+                                    newNode.setRenderable(renderable);
+                                });
+                                overlapped = true;
+                                break;
+                            }
+                        }
+                        if(overlapped) {
+                            getArSceneView().getScene().removeChild(children.get(3));
+                        }
+
+                }
             }
 
         }

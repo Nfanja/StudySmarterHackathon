@@ -72,12 +72,13 @@ sceneform.asset('sampledata/models/oxygen.obj',
         'sampledata/models/oxygen.sfa',
         'src/main/res/raw/oxygen')
 
-sceneform.asset('sampledata/models/water.obj',
-        'default',
-        'sampledata/models/water.sfa',
-        'src/main/res/raw/water')
-
 sceneform.asset('sampledata/models/hydrogen.obj',
         'default',
         'sampledata/models/hydrogen.sfa',
         'src/main/res/raw/hydrogen')
+
+
+sceneform.asset('sampledata/models/water.obj',
+        'default',
+        'sampledata/models/water.sfa',
+        'src/main/res/raw/water')
