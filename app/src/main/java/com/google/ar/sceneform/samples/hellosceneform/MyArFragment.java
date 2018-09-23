@@ -1,8 +1,10 @@
 package com.google.ar.sceneform.samples.hellosceneform;
 
+import android.animation.ObjectAnimator;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Log;
+import android.view.animation.LinearInterpolator;
 import android.widget.Toast;
 
 import com.google.ar.core.Anchor;
@@ -18,6 +20,8 @@ import com.google.ar.sceneform.AnchorNode;
 import com.google.ar.sceneform.FrameTime;
 import com.google.ar.sceneform.Node;
 import com.google.ar.sceneform.math.MathHelper;
+import com.google.ar.sceneform.math.Quaternion;
+import com.google.ar.sceneform.math.QuaternionEvaluator;
 import com.google.ar.sceneform.math.Vector3;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 import com.google.ar.sceneform.ux.ArFragment;
@@ -83,6 +87,33 @@ public class MyArFragment extends ArFragment {
 
     private HashSet<AugmentedImage> trackedAugImgs = new HashSet<>();
 
+    // https://stackoverflow.com/a/52396327
+    private static ObjectAnimator createAnimator() {
+        // Node's setLocalRotation method accepts Quaternions as parameters.
+        // First, set up orientations that will animate a circle.
+        Quaternion orientation1 = Quaternion.axisAngle(new Vector3(0.0f, 1.0f, 0.0f), 0);
+        Quaternion orientation2 = Quaternion.axisAngle(new Vector3(0.0f, 1.0f, 0.0f), 120);
+        Quaternion orientation3 = Quaternion.axisAngle(new Vector3(0.0f, 1.0f, 0.0f), 240);
+        Quaternion orientation4 = Quaternion.axisAngle(new Vector3(0.0f, 1.0f, 0.0f), 360);
+
+        ObjectAnimator orbitAnimation = new ObjectAnimator();
+        orbitAnimation.setObjectValues(orientation1, orientation2, orientation3, orientation4);
+
+        // Next, give it the localRotation property.
+        orbitAnimation.setPropertyName("localRotation");
+
+        // Use Sceneform's QuaternionEvaluator.
+        orbitAnimation.setEvaluator(new QuaternionEvaluator());
+
+        //  Allow orbitAnimation to repeat forever
+        orbitAnimation.setRepeatCount(ObjectAnimator.INFINITE);
+        orbitAnimation.setRepeatMode(ObjectAnimator.RESTART);
+        orbitAnimation.setInterpolator(new LinearInterpolator());
+        orbitAnimation.setAutoCancel(true);
+
+        return orbitAnimation;
+    }
+
     @Override
     public void onUpdate(FrameTime frameTime) {
         super.onUpdate(frameTime);
@@ -126,7 +157,9 @@ public class MyArFragment extends ArFragment {
                             if (!overlappedNodes.isEmpty()) {
                                 node.removeChild(child);
                                 Toast.makeText(getContext(), "Overlapped", Toast.LENGTH_SHORT).show();
-                                Vector3 center = Vector3.add(overlappedNodes.get(0).getWorldPosition(), child.getWorldPosition());
+                                Node node1 = overlappedNodes.get(0);
+                                Node node2 = child;
+                                Vector3 center = Vector3.add(node1.getWorldPosition(), node2.getWorldPosition());
                                 center.set(center.x / 2, center.y / 2, center.z / 2);
 
                                 ModelRenderable.builder().
@@ -135,6 +168,23 @@ public class MyArFragment extends ArFragment {
                                     Node newNode = new Node();
                                     newNode.setParent(node);
                                     newNode.setLocalPosition(node.worldToLocalDirection(center));
+
+                                    // ANIMATION
+                                    Vector3 pose1 = node1.getWorldPosition();
+                                    Vector3 pose2 = node2.getWorldPosition();
+
+                                    node1.setParent(newNode);
+                                    node2.setParent(newNode);
+
+                                    node1.setWorldPosition(pose1);
+                                    node2.setWorldPosition(pose2);
+
+                                    ObjectAnimator rot = createAnimator();
+                                    rot.setTarget(newNode);
+                                    rot.setDuration(500); // ms
+                                    rot.start();
+                                    // ANIMATION //
+
                                     newNode.setRenderable(renderable);
                                 });
                                 overlapped = true;
