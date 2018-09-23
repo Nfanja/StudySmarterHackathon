@@ -20,6 +20,7 @@ public class AugmentedImageNode extends AnchorNode {
 
     private AugmentedImage image;
     private static CompletableFuture<ModelRenderable> modelFuture;
+    Node node;
 
     public AugmentedImageNode(Context context, int resource) {
         // Upon construction, start loading the modelFuture
@@ -48,7 +49,7 @@ public class AugmentedImageNode extends AnchorNode {
 
         setAnchor(image.createAnchor(image.getCenterPose()));
 
-        Node node = new Node();
+        node = new Node();
 
         Pose pose = Pose.makeTranslation(0.0f, 0.0f, 0.0f);
 

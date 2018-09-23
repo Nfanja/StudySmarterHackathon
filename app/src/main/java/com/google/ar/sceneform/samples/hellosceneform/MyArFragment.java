@@ -85,7 +85,8 @@ public class MyArFragment extends ArFragment {
         }
     }
 
-    private HashSet<AugmentedImage> trackedAugImgs = new HashSet<>();
+    private AugmentedImageNode hydrogen;
+    private AugmentedImageNode oxygen;
 
     // https://stackoverflow.com/a/52396327
     private static ObjectAnimator createAnimator() {
@@ -106,8 +107,8 @@ public class MyArFragment extends ArFragment {
         orbitAnimation.setEvaluator(new QuaternionEvaluator());
 
         //  Allow orbitAnimation to repeat forever
-        orbitAnimation.setRepeatCount(ObjectAnimator.INFINITE);
-        orbitAnimation.setRepeatMode(ObjectAnimator.RESTART);
+//        orbitAnimation.setRepeatCount(ObjectAnimator.INFINITE);
+//        orbitAnimation.setRepeatMode(ObjectAnimator.RESTART);
         orbitAnimation.setInterpolator(new LinearInterpolator());
         orbitAnimation.setAutoCancel(true);
 
@@ -126,18 +127,19 @@ public class MyArFragment extends ArFragment {
             for (AugmentedImage img : updatedAugmentedImages) {
                 if (img.getTrackingState() == TrackingState.TRACKING) {
                     Toast.makeText(getContext(), img.getName(), Toast.LENGTH_SHORT).show();
-                    if (!trackedAugImgs.contains(img)) {
-                        int resource = -1;
-                        if(img.getName().equals("H")) {
-                            resource = R.raw.hydrogen;
-                        } else if (img.getName().equals("O")) {
-                            resource = R.raw.oxygen;
-                        }
+                    AugmentedImageNode node = null;
 
-                        AugmentedImageNode node = new AugmentedImageNode(this.getContext(), resource);
+                    if(img.getName().equals("H") && hydrogen == null) {
+                        node = new AugmentedImageNode(this.getContext(), R.raw.hydrogen);
+                        hydrogen = node;
+                    } else if (img.getName().equals("O") && oxygen == null) {
+                        node = new AugmentedImageNode(this.getContext(), R.raw.oxygen);
+                        oxygen = node;
+                    }
+
+                    if (node != null) {
                         node.setImage(img);
                         getArSceneView().getScene().addChild(node);
-                        trackedAugImgs.add(img);
                     }
                 }
             }
@@ -148,53 +150,41 @@ public class MyArFragment extends ArFragment {
             }
 
             if(!overlapped) {
-                List<Node> children = getArSceneView().getScene().getChildren();
-                //First two anchors are camera and sun
-                if (children.size() > 3) {
-                    Node node = children.get(2);
-                        for (Node child : node.getChildren()) {
-                            ArrayList<Node> overlappedNodes = getArSceneView().getScene().overlapTestAll(child);
-                            if (!overlappedNodes.isEmpty()) {
-                                node.removeChild(child);
-                                Toast.makeText(getContext(), "Overlapped", Toast.LENGTH_SHORT).show();
-                                Node node1 = overlappedNodes.get(0);
-                                Node node2 = child;
-                                Vector3 center = Vector3.add(node1.getWorldPosition(), node2.getWorldPosition());
-                                center.set(center.x / 2, center.y / 2, center.z / 2);
+                if (hydrogen != null && oxygen != null) {
+                    Node probablyOxygen = getArSceneView().getScene().overlapTest(hydrogen.node);
+                    if (probablyOxygen == oxygen.node) {
+                        Vector3 center = Vector3.add(oxygen.getWorldPosition(), hydrogen.getWorldPosition());
+                        center.set(center.x / 2, center.y / 2, center.z / 2);
 
-                                ModelRenderable.builder().
-                                        setSource(getContext(), R.raw.water).
-                                        build().thenAccept(renderable -> {
-                                    Node newNode = new Node();
-                                    newNode.setParent(node);
-                                    newNode.setLocalPosition(node.worldToLocalDirection(center));
+                        ModelRenderable.builder().
+                                setSource(getContext(), R.raw.water).
+                                build().thenAccept(renderable -> {
+                            Node water = new Node();
+                            water.setParent(hydrogen);
+                            water.setWorldPosition(center);
 
-                                    // ANIMATION
-                                    Vector3 pose1 = node1.getWorldPosition();
-                                    Vector3 pose2 = node2.getWorldPosition();
+                            // ANIMATION
+                            Vector3 poseHydrogen = hydrogen.getWorldPosition();
+                            Vector3 poseOxygen = oxygen.getWorldPosition();
 
-                                    node1.setParent(newNode);
-                                    node2.setParent(newNode);
+                            oxygen.node.setParent(water);
+                            hydrogen.node.setParent(water);
 
-                                    node1.setWorldPosition(pose1);
-                                    node2.setWorldPosition(pose2);
+                            oxygen.node.setWorldPosition(poseOxygen);
+                            hydrogen.node.setWorldPosition(poseHydrogen);
 
-                                    ObjectAnimator rot = createAnimator();
-                                    rot.setTarget(newNode);
-                                    rot.setDuration(500); // ms
-                                    rot.start();
-                                    // ANIMATION //
+                            ObjectAnimator rot = createAnimator();
+                            rot.setTarget(water);
+                            rot.setDuration(5000); // ms
+                            rot.start();
+                            // ANIMATION //
 
-                                    newNode.setRenderable(renderable);
-                                });
-                                overlapped = true;
-                                break;
-                            }
-                        }
-                        if(overlapped) {
-                            getArSceneView().getScene().removeChild(children.get(3));
-                        }
-
+                            water.setRenderable(renderable);
+                            hydrogen.node.setRenderable(null);
+                            oxygen.node.setRenderable(null);
+                        });
+                        overlapped = true;
+                    }
                 }
             }
 
