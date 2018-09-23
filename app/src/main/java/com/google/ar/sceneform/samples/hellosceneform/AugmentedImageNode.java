@@ -23,9 +23,8 @@ public class AugmentedImageNode extends AnchorNode {
 
     public AugmentedImageNode(Context context, int resource) {
         // Upon construction, start loading the modelFuture
-        if (modelFuture == null) {
-            modelFuture = ModelRenderable.builder().setSource(context, resource).build();
-        }
+        modelFuture = ModelRenderable.builder().setSource(context, resource).build();
+
         this.setSmoothed(true);
     }
 

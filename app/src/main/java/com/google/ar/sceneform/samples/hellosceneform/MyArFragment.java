@@ -53,15 +53,15 @@ public class MyArFragment extends ArFragment {
         config.setCloudAnchorMode(Config.CloudAnchorMode.ENABLED);
 
         imageDatabase = new AugmentedImageDatabase(session);
-        Bitmap earth = loadImage("augmented-images-earth.jpg");
-        Bitmap hydrogen = loadImage("H.jpg");
-        Bitmap oxygen = loadImage("O.jpg");
+        //Bitmap earth = loadImage("augmented-images-earth.jpg");
+        //Bitmap hydrogen = loadImage("H.jpg");
+        //Bitmap oxygen = loadImage("O.jpg");
         Bitmap cl = loadImage("Cl.jpg");
         Bitmap na = loadImage("Na.jpg");
 
-        imageDatabase.addImage("earth", earth);
-        imageDatabase.addImage("oxygen", oxygen);
-        imageDatabase.addImage("hydrogen", hydrogen);
+        //imageDatabase.addImage("earth", earth);
+        //imageDatabase.addImage("oxygen", oxygen);
+        //imageDatabase.addImage("hydrogen", hydrogen);
         imageDatabase.addImage("Cl", cl);
         imageDatabase.addImage("Na", na);
 
@@ -88,8 +88,16 @@ public class MyArFragment extends ArFragment {
 
             for (AugmentedImage img : updatedAugmentedImages) {
                 if (img.getTrackingState() == TrackingState.TRACKING) {
+                    Toast.makeText(getContext(), img.getName(), Toast.LENGTH_SHORT).show();
                     if (!trackedAugImgs.contains(img)) {
-                        AugmentedImageNode node = new AugmentedImageNode(this.getContext(), R.raw.hydrogen);
+                        int resource = -1;
+                        if(img.getName().equals("Cl")) {
+                            resource = R.raw.hydrogen;
+                        } else if (img.getName().equals("Na")) {
+                            resource = R.raw.oxygen;
+                        }
+
+                        AugmentedImageNode node = new AugmentedImageNode(this.getContext(), resource);
                         node.setImage(img);
                         getArSceneView().getScene().addChild(node);
                         trackedAugImgs.add(img);
@@ -110,8 +118,11 @@ public class MyArFragment extends ArFragment {
                 }
             }
 
-            Anchor.CloudAnchorState state = anchor.getCloudAnchorState();
-            hosting = !(state.isError() || state == Anchor.CloudAnchorState.SUCCESS);
+            if(anchor != null && hosting) {
+                Anchor.CloudAnchorState state = anchor.getCloudAnchorState();
+                hosting = !(state.isError() || state == Anchor.CloudAnchorState.SUCCESS);
+            }
+
         }
     }
 
