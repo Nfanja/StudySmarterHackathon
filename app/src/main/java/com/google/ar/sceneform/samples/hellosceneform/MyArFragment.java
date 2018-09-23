@@ -60,16 +60,16 @@ public class MyArFragment extends ArFragment {
 
         imageDatabase = new AugmentedImageDatabase(session);
         //Bitmap earth = loadImage("augmented-images-earth.jpg");
-        //Bitmap hydrogen = loadImage("H.jpg");
-        //Bitmap oxygen = loadImage("O.jpg");
-        Bitmap cl = loadImage("Cl.jpg");
-        Bitmap na = loadImage("Na.jpg");
+        Bitmap hydrogen = loadImage("H.jpg");
+        Bitmap oxygen = loadImage("O.jpg");
+        //Bitmap cl = loadImage("Cl.jpg");
+        //Bitmap na = loadImage("Na.jpg");
 
         //imageDatabase.addImage("earth", earth);
         //imageDatabase.addImage("oxygen", oxygen);
         //imageDatabase.addImage("hydrogen", hydrogen);
-        imageDatabase.addImage("Cl", cl);
-        imageDatabase.addImage("Na", na);
+        imageDatabase.addImage("H", hydrogen);
+        imageDatabase.addImage("O", oxygen);
 
         config.setAugmentedImageDatabase(imageDatabase);
 
@@ -97,9 +97,9 @@ public class MyArFragment extends ArFragment {
                     Toast.makeText(getContext(), img.getName(), Toast.LENGTH_SHORT).show();
                     if (!trackedAugImgs.contains(img)) {
                         int resource = -1;
-                        if(img.getName().equals("Cl")) {
+                        if(img.getName().equals("H")) {
                             resource = R.raw.hydrogen;
-                        } else if (img.getName().equals("Na")) {
+                        } else if (img.getName().equals("O")) {
                             resource = R.raw.oxygen;
                         }
 
